@@ -17,8 +17,15 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Main extends Application {
+
+    // copy code
+    static Set<Character> currentlyPressedKeys = new HashSet<>();
+    static Set<Character> wasPressedKeys = new HashSet<>();
+    static Set<Integer> currentlyPressedKeyCodes = new HashSet<>();
 
     static int witdhX = 640;
     static int heightY = 320;
@@ -43,25 +50,25 @@ public class Main extends Application {
 
                 switch (direction) {
                     case "up":
-                        GolbalUse.rectangleCharacter.y -= 2;
+                        GolbalUse.rectangleCharacter.y -= GolbalUse.speed;
                         if (GolbalUse.rectangleCharacter.intersects(GolbalUse.gridObj[i].rectangle) && GolbalUse.gridObj[i].collision == true) {
                             result = true;
                         }
                         break;
                     case "down":
-                        GolbalUse.rectangleCharacter.y += 2;
+                        GolbalUse.rectangleCharacter.y += GolbalUse.speed;
                         if (GolbalUse.rectangleCharacter.intersects(GolbalUse.gridObj[i].rectangle) && GolbalUse.gridObj[i].collision == true) {
                             result = true;
                         }
                         break;
                     case "left":
-                        GolbalUse.rectangleCharacter.x -= 2;
+                        GolbalUse.rectangleCharacter.x -= GolbalUse.speed;
                         if (GolbalUse.rectangleCharacter.intersects(GolbalUse.gridObj[i].rectangle) && GolbalUse.gridObj[i].collision == true) {
                             result = true;
                         }
                         break;
                     case "right":
-                        GolbalUse.rectangleCharacter.x += 2;
+                        GolbalUse.rectangleCharacter.x += GolbalUse.speed;
                         if (GolbalUse.rectangleCharacter.intersects(GolbalUse.gridObj[i].rectangle) && GolbalUse.gridObj[i].collision == true) {
                             result = true;
                         }
@@ -97,7 +104,7 @@ public class Main extends Application {
 
         switch (direction) {
             case "up":
-                topRow = (pointTop - 2) / 32;
+                topRow = (pointTop - GolbalUse.speed) / 32;
                 cell1 = GolbalUse.grid[topRow][leftCol];
                 cell2 = GolbalUse.grid[topRow][rightCol];
                 if (cell1 == null || cell2 == null) {
@@ -107,7 +114,7 @@ public class Main extends Application {
                 }
                 break;
             case "down":
-                bottomRow = (pointBottom + 2) / 32;
+                bottomRow = (pointBottom + GolbalUse.speed) / 32;
                 cell1 = GolbalUse.grid[bottomRow][leftCol];
                 cell2 = GolbalUse.grid[bottomRow][rightCol];
                 if (cell1 == null || cell2 == null) {
@@ -117,7 +124,7 @@ public class Main extends Application {
                 }
                 break;
             case "left":
-                leftCol = (pointLeft - 2) / 32;
+                leftCol = (pointLeft - GolbalUse.speed) / 32;
                 cell1 = GolbalUse.grid[topRow][leftCol];
                 cell2 = GolbalUse.grid[bottomRow][leftCol];
                 if (cell1 == null || cell2 == null) {
@@ -127,7 +134,7 @@ public class Main extends Application {
                 }
                 break;
             case "right":
-                rightCol = (pointRight + 2) / 32;
+                rightCol = (pointRight + GolbalUse.speed) / 32;
                 cell1 = GolbalUse.grid[topRow][rightCol];
                 cell2 = GolbalUse.grid[bottomRow][rightCol];
                 if (cell1 == null || cell2 == null) {
@@ -146,6 +153,55 @@ public class Main extends Application {
     public static void reDraw(GraphicsContext gc, ImagesResource imagesResource, MainCharacter mainCharacter) {
         gc.setFill(Color.BLACK);
         gc.fillRect(0, 0, witdhX, heightY);
+
+
+        //redraw character
+        if (isPressed('W')) {
+            mainCharacter.setDir(3);
+            //chạm rìa
+            if (GolbalUse.pointY <= 0) {
+                return;
+            }
+
+            // check collision
+            if (!checkCollision("up") && !checkCollisionObject("up")) {
+                GolbalUse.pointY -= GolbalUse.speed;
+            }
+        }
+        if (isPressed('A')) {
+            mainCharacter.setDir(2);
+            //chạm rìa
+            if (GolbalUse.pointX <= 0) {
+                return;
+            }
+
+            // check collision
+            if (!checkCollision("left") && !checkCollisionObject("left")) {
+                GolbalUse.pointX -= GolbalUse.speed;
+            }
+        }
+        if (isPressed('S')) {
+            mainCharacter.setDir(4);
+            // check collision
+            if (!checkCollision("down") && !checkCollisionObject("down")) {
+                GolbalUse.pointY += GolbalUse.speed;
+            }
+        }
+        if (isPressed('D')) {
+            mainCharacter.setDir(1);
+            // check collision
+            if (!checkCollision("right") && !checkCollisionObject("right")) {
+                GolbalUse.pointX += GolbalUse.speed;
+            }
+        }
+
+        if (isPressed('W') || isPressed('A') || isPressed('S') || isPressed('D')) {
+            if (mainCharacter.getStage() >= 15) {
+                mainCharacter.setStage(1);
+            } else {
+                mainCharacter.setStage(mainCharacter.getStage() + 1);
+            }
+        }
 
         //redraw background
         for (int i = 0; i < 10; i++) {
@@ -241,6 +297,10 @@ public class Main extends Application {
         }
     }
 
+    public static boolean isPressed(char c) {
+        return currentlyPressedKeys.contains(c);
+    }
+
 
     @Override
     public void start(Stage stage) throws IOException, URISyntaxException {
@@ -262,70 +322,14 @@ public class Main extends Application {
         AnchorPane anchorPane = new AnchorPane();
         anchorPane.getChildren().add(canvas);
         Scene scene = new Scene(anchorPane, witdhX, heightY);
-
+        scene.addEventFilter(KeyEvent.KEY_RELEASED, key -> {
+            currentlyPressedKeys.remove(key.getCode().toString().charAt(0));
+            currentlyPressedKeyCodes.remove(key.getCode().getCode());
+        });
         scene.addEventFilter(KeyEvent.KEY_PRESSED, key -> {
-            if (key.getCode() == KeyCode.W) {
-                mainCharacter.setDir(3);
-                if (mainCharacter.getStage() >= 15) {
-                    mainCharacter.setStage(1);
-                } else {
-                    mainCharacter.setStage(mainCharacter.getStage() + 1);
-                }
-
-                //chạm rìa
-                if (GolbalUse.pointY <= 0) {
-                    return;
-                }
-
-                // check collision
-                if (!checkCollision("up") && !checkCollisionObject("up")) {
-                    GolbalUse.pointY -= 2;
-                }
-            }
-            if (key.getCode() == KeyCode.A) {
-                mainCharacter.setDir(2);
-                if (mainCharacter.getStage() >= 15) {
-                    mainCharacter.setStage(1);
-                } else {
-                    mainCharacter.setStage(mainCharacter.getStage() + 1);
-                }
-
-                //chạm rìa
-                if (GolbalUse.pointX <= 0) {
-                    return;
-                }
-
-                // check collision
-                if (!checkCollision("left") && !checkCollisionObject("left")) {
-                    GolbalUse.pointX -= 2;
-                }
-            }
-            if (key.getCode() == KeyCode.S) {
-                mainCharacter.setDir(4);
-                if (mainCharacter.getStage() >= 15) {
-                    mainCharacter.setStage(1);
-                } else {
-                    mainCharacter.setStage(mainCharacter.getStage() + 1);
-                }
-
-                // check collision
-                if (!checkCollision("down") && !checkCollisionObject("down")) {
-                    GolbalUse.pointY += 2;
-                }
-            }
-            if (key.getCode() == KeyCode.D) {
-                mainCharacter.setDir(1);
-                if (mainCharacter.getStage() >= 15) {
-                    mainCharacter.setStage(1);
-                } else {
-                    mainCharacter.setStage(mainCharacter.getStage() + 1);
-                }
-
-                // check collision
-                if (!checkCollision("right") && !checkCollisionObject("right")) {
-                    GolbalUse.pointX += 2;
-                }
-            }
+            currentlyPressedKeys.add(key.getCode().toString().charAt(0));
+            currentlyPressedKeyCodes.add(key.getCode().getCode());
+            wasPressedKeys.add(key.getCode().toString().charAt(0));
         });
 
         new AnimationTimer() {

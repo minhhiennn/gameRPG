@@ -7,6 +7,7 @@ public class MainCharacter {
     // Dir = 2 quay phải
     // Dir = 3 quay lên
     // Dir = 4 quay xuống
+    // Dir = 5 không làm gì hết
     private int Stage = 1; // lúc đi có 3 cái hình (animation)
     // 1 là hình đầu
     // 5 là hình sau

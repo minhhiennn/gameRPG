@@ -62,6 +62,9 @@ public class GolbalUse {
     public static int pointX = 100;
     public static int pointY = 100;
 
+    //tốc độ di chuyển của màn hình
+    public static int speed = 2;
+
 
     // chiều dài, chiều rộng nhân vật
     public static int characterWidth = 25;
